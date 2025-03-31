@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .forms import RegisterForm, LoginForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
+from .utils import send_alert_email  # Import the email function
 
 # View for user registration
 def register(request):
@@ -13,8 +14,15 @@ def register(request):
             user.set_password(form.cleaned_data["password"])
             user.save()
 
+            # Send email alert to the registered user
+            send_alert_email(
+                user.email,
+                "Welcome to ShopSense!",
+                "Thank you for registering. Stay tuned for smart shopping insights!"
+            )
+
             # Add a success message
-            messages.success(request, "Your account has been created successfully!")
+            messages.success(request, "Your account has been created successfully! Check your email for confirmation.")
             
             # Redirect to the login page after successful registration
             return redirect("login")  # You'll need to create the login view next
@@ -33,7 +41,7 @@ def user_login(request):
             if user is not None:
                 login(request, user)  # Log the user in
                 messages.success(request, "You are now logged in!")
-                return redirect('dashboard')  # Redirect to the dashboard (or home page) after successful login
+                return redirect('dashboard')  # Redirect to the dashboard after successful login
             else:
                 messages.error(request, "Invalid credentials. Please try again.")
     else:
@@ -44,5 +52,3 @@ def user_login(request):
 # View for dashboard after login
 def dashboard(request):
     return render(request, "accounts/dashboard.html")
-
-
